@@ -14,7 +14,7 @@ export class Sequencer {
   lookahead = 250.0;
   beatsQueue: Array<{ beat: number; time: number }> = [];
   timeoutId: number | undefined = undefined;
-  beatsSubject$: Subject<number>;
+//  beatsSubject$: Subject<number>;
 
   sequenceMap: Array<boolean[]> = [];
 
@@ -24,7 +24,7 @@ export class Sequencer {
 
     this.oscilatorNodes = this.createOscilators();
 
-    this.beatsSubject$ = new Subject<number>();
+//    this.beatsSubject$ = new Subject<number>();
   }
 
   updateSequenceMap(sequenceMap: Array<boolean[]>) {

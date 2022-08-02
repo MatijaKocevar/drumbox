@@ -21,7 +21,7 @@ const Drumbox = () => {
   }, [sequenceMap]);
 
   useEffect(() => {
-    sequencer.beatsObservable$.subscribe();
+//    sequencer.beatsObservable$.subscribe();
   }, [])
 
   const handleMouseDown = (e: React.MouseEvent<HTMLButtonElement>) => {
