@@ -1,6 +1,7 @@
 import SelectMIDIDevice from "./components/SelectMIDIDevice";
 import "./App.css";
 import Drumbox from "./components/Drumbox";
+import {} from "./modules/MidiHandler";
 
 function App() {
   return (
