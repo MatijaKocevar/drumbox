@@ -1,23 +1,14 @@
-function onMIDIFailure() {
-  console.log("Error: Could not access MIDI devices.");
-}
-function getMIDIMessage(message: WebMidi.MIDIMessageEvent) {}
-
-function onMIDISuccess(midiAccess: WebMidi.MIDIAccess) {
-  var inputs = midiAccess.inputs;
-  var outputs = midiAccess.outputs;
-
-  // Attach MIDI event "listeners" to each input
-  for (var input of midiAccess.inputs.values()) {
-    input.onmidimessage = getMIDIMessage;
-  }
-}
-
 export class MidiHandler {
-  inputIds: number[];
+  midiAccess: boolean;
 
-  constructor(_inputIds: number[]) {
-    this.inputIds = _inputIds;
+  constructor() {
+    this.midiAccess = "requestMIDIAccess" in navigator;
+    console.log(this.midiAccess);
+  }
+
+ _getMIDIInputs() {
+    
+
   }
 
   _getMIDIMessage() {
