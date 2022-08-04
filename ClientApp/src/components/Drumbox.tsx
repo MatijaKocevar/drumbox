@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Sequencer } from "./Sequencer";
+import { Sequencer } from "../modules/Sequencer";
 
 const width = 12;
 const height = 12;

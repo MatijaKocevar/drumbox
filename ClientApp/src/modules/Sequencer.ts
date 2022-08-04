@@ -1,4 +1,3 @@
-import {Subject} from "rxjs";
 import scale from "./scale.json";
 
 export class Sequencer {
