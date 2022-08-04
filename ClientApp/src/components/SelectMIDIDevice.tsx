@@ -1,29 +1,25 @@
 import { BaseSyntheticEvent, useEffect, useState } from "react";
+import { MidiHandler, MIDIInputInfo } from "../modules/MidiHandler";
 
-const SelectMIDIDevice = () => {
-  const [inputs, setInputs] = useState<WebMidi.MIDIInput[]>();
-  const [selectedInput, setSelectedInput] = useState<string>();
+const SelectMIDIDevice = ({
+  onMIDIInputChange,
+}: {
+  onMIDIInputChange: (input: MIDIInputInfo) => void;
+}) => {
+  const [inputs, setInputs] = useState<MIDIInputInfo[]>([]);
+  const [isWebMidiAvailable, setIsWebMidiAvailable] = useState<boolean>(false);
 
   useEffect(() => {
-    navigator.requestMIDIAccess().then(onMIDISuccess, onMIDIFailure);
-
-    function onMIDISuccess(midiAccess: WebMidi.MIDIAccess) {
-      midiAccess.onstatechange = (e: any) => {
-        console.log("Some device connected!: ", e);
-      };
-
-      setInputs(Array.from(midiAccess.inputs.values()));
+    async function getMIDIInputs() {
+      const midi = new MidiHandler();
+      await midi.init();
+      setIsWebMidiAvailable(true);
+      const inputs = midi.getInputList();
+      setInputs(inputs);
     }
 
-    function onMIDIFailure() {
-      console.log("Could not access your MIDI devices.");
-    }
+    getMIDIInputs().catch((err) => setIsWebMidiAvailable(false));
   }, []);
-
-  useEffect(() => {
-    // if (inputs) console.log(inputs);
-    if (selectedInput) console.log(selectedInput);
-  }, [inputs, selectedInput]);
 
   return (
     <>
@@ -35,16 +31,20 @@ const SelectMIDIDevice = () => {
       </label>
       <select
         id="inputs"
-        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ing-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
         defaultValue={"default"}
         onChange={(e: BaseSyntheticEvent) => {
-          setSelectedInput(e.currentTarget.value);
+          let input = inputs.find(i => i.id == e.currentTarget.value)
+          if (input) onMIDIInputChange(input)
         }}
       >
         <>
           <option disabled hidden value={"default"}>
             Select an input
           </option>
+          {!isWebMidiAvailable && (
+            <option> MIDI API not avaliable on this device</option>
+          )}
           {inputs?.length &&
             inputs.map((input) => {
               return (

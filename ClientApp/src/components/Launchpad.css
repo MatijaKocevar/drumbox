@@ -1,7 +1,14 @@
-.pad-shadow:after {
+.active.pad:after {
   content: "";
   position: absolute;
   border-radius: 50%;
-  box-shadow: 0 0 18px 8px #fff, 0 0 20px 25px #EA580C;
+  box-shadow: 0 0 21px 10px #fff, 0 0 20px 25px #EA580C, 0 0 0 32px #9B3907; 
+}
+
+.pad:after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  box-shadow: 0 0 20px 5px #ffffff3d, 0 0 20px 20px #a3a3a3, 0 0 0 35px #0000001c;
 }
 

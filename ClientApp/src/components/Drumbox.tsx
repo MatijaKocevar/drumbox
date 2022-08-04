@@ -86,8 +86,9 @@ const Drumbox = () => {
   ];
 
   const getPadPositionFromId = (padId: string): [number, number] => {
-    const row = Math.floor((parseInt(padId.slice(4)) - 1) / height);
-    const col = (parseInt(padId.slice(4)) - 1) % height;
+    const padNumber = parseInt(padId.slice(padId.indexOf('-') + 1));
+    const row = Math.floor(padNumber / width);
+    const col = padNumber % height;
 
     return [row, col];
   };
@@ -108,6 +109,7 @@ const Drumbox = () => {
       onMouseOver={handleMouseOver}
       onMouseDown={handleMouseDown}
       id={`pad-${index}`}
+      key={`pad-${index}`}
     ></button>
   );
   return (
@@ -137,9 +139,9 @@ const Drumbox = () => {
       >
         {[...Array(height)].map((row, rowIndex) => {
           return (
-            <div className="flex">
+            <div key={rowIndex} className="flex">
               {[...Array(width)].map((col, colIndex) =>
-                Pad(rowIndex * width + colIndex + 1)
+                Pad(rowIndex * width + colIndex)
               )}
             </div>
           );

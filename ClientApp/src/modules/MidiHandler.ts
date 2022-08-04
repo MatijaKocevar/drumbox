@@ -1,42 +1,58 @@
+export type MIDIInputInfo = Pick<WebMidi.MIDIInput, "id" | "name">;
+export interface MIDIMessage {
+  command: number;
+  note: number;
+  velocity: number;
+  timestamp: number;
+  messageCount: number;
+}
+
 export class MidiHandler {
-  midiAccess: boolean;
+  isWebMidiAvailable: boolean;
+  webMidi: WebMidi.MIDIAccess | null;
 
   constructor() {
-    this.midiAccess = "requestMIDIAccess" in navigator;
-    console.log(this.midiAccess);
+    this.isWebMidiAvailable = "requestMIDIAccess" in navigator;
+    this.webMidi = null;
   }
 
- _getMIDIInputs() {
-    
-
+  async init(): Promise<string> {
+    if (!this.isWebMidiAvailable) throw new Error("Browser not compatible!");
+    try {
+      this.webMidi = await navigator.requestMIDIAccess();
+      return "WebMidi API initialised"
+    } catch (err) {
+      console.log("requestMIDIAccess ERROR: ", err);
+      throw err;
+    }
   }
 
-  _getMIDIMessage() {
-    if (navigator.requestMIDIAccess) {
-      console.log("This browser supports WebMIDI!");
+  getInputList(): MIDIInputInfo[] {
+    if (!this.webMidi) throw new Error("MIDIAccess not initialised!");
+      const inputs = Array.from(this.webMidi.inputs.values());
+      return inputs.map(input => ({ id: input.id, name: input.name }))
+  }
 
-      navigator.requestMIDIAccess().then(onMIDISuccess, onMIDIFailure);
-    } else {
-      console.log("WebMIDI is not supported in this browser.");
-    }
+  getMIDIMessage(inputId: string, callback: (msg: MIDIMessage) => void) {
+    if (!this.webMidi) throw new Error('MIDIAccess not initialised!')
 
-    function onMIDIFailure() {
-      console.log("Error: Could not access MIDI devices.");
-    }
+    const input = this.webMidi.inputs.get(inputId);
+    if (!input) throw new Error('Selected input not found!')
+
+    let messageCount = 0;
 
     function getMIDIMessage(message: WebMidi.MIDIMessageEvent) {
       var command = message.data[0];
+      if (command == 248) return;
       var note = message.data[1];
-      var velocity = message.data.length > 2 ? message.data[2] : 0; //
+      var velocity = message.data.length > 2 ? message.data[2] : 0;
+      messageCount += 1;
+  
+      let msg = { command, note, velocity, timestamp: message.timeStamp, messageCount};
+      callback(msg)
     }
 
-    function onMIDISuccess(midiAccess: WebMidi.MIDIAccess) {
-      // Attach MIDI event "listeners" to each input
-      for (var input of midiAccess.inputs.values()) {
-        input.onmidimessage = getMIDIMessage;
-      }
-    }
+    input.onmidimessage = getMIDIMessage;
   }
 }
 
-let test = new MidiHandler([1, 2, 3]);
