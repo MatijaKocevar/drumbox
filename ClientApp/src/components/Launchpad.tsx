@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MidiHandler, MIDIInputInfo, MIDIMessage } from "../modules/MidiHandler";
 import "./Launchpad.css";
 import { MidiDebugger } from "./MidiDebugger";
+import LpMIniMK3 from "../templates/LPMiniMK3.json";
 
 const midi = new MidiHandler();
 
@@ -17,22 +18,28 @@ const Launchpad = ({
   const [activePads, setActivePads] = useState<string[]>([]);
   const padActiveStyle = "dark:bg-green-600 hover:bg-green-400";
 
+  const prevRef = useRef<string>();
+
   useEffect(() => {
     async function getMidiInput() {
       await midi.init();
-      if (selectedMidiInput)
+      if (selectedMidiInput) {
         midi.getMIDIMessage(selectedMidiInput.id, onMidiMessage);
+
+        if (prevRef.current) midi.destroy(prevRef.current);
+        prevRef.current = selectedMidiInput.id;
+      }
     }
 
     getMidiInput().catch((e) => null);
   }, [selectedMidiInput]);
 
   const onMidiMessage = (msg: MIDIMessage) => {
-    if (msg.command === 153) {
+    if (msg.command === 144 || msg.command === 128) {
       if (msg.velocity > 0) {
-        setActivePads((prev) => [...prev, `pad-${msg.note}`])
+        setActivePads((prev) => [...prev, `pad-${msg.note}`]);
       } else {
-        setActivePads((prev) => [ ...prev ].filter(padId => padId != `pad-${msg.note}`))
+        setActivePads((prev) => [...prev].filter((padId) => padId != `pad-${msg.note}`));
       }
     }
   };
@@ -46,31 +53,40 @@ const Launchpad = ({
     return isPadActive ? [mainStyles, activeStyles].join(" ") : mainStyles;
   };
 
-  const Pad = (index: number) => (
-    <button
-      onClick={handleMouseClick}
-      className={setPadStyles(`pad-${index}`)}
-      id={`pad-${index}`}
-      key={`pad-${index}`}
-    ></button>
-  );
+  const Pad = (index: number) => {
+    return (
+      <button
+        onClick={handleMouseClick}
+        className={setPadStyles(`pad-${index}`)}
+        id={`pad-${index}`}
+        key={`pad-${index}`}
+        name={`${index}`}
+      ></button>
+    );
+  };
 
   const handleMouseClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    const [padId, padIndex] = getPadDataFromEvent(e);
+    const [padId, padIndex, noteCode] = getPadDataFromEvent(e);
     const [row, col] = getPadPositionFromId(padId);
     setActivePads((activePads) =>
-      padIndex != -1
-        ? [...activePads.filter((id) => id != padId)]
-        : [...activePads, padId]
+      padIndex != -1 ? [...activePads.filter((id) => id != padId)] : [...activePads, padId]
     );
+
+    // let test = midi.getOutputList();
+    if (midi.webMidi) {
+      midi.sendMiddleC(midi.webMidi, "output-3", noteCode);
+      midi.getOutputList();
+      debugger;
+    }
   };
 
   const getPadDataFromEvent = (
     e: React.MouseEvent<HTMLElement>
-  ): [string, number] => [
-    e.currentTarget.id,
-    activePads.indexOf(e.currentTarget.id),
-  ];
+  ): [string, number, string | null] => {
+    let tempEl = e.currentTarget as HTMLElement;
+    let noteCode = tempEl.getAttribute("name");
+    return [tempEl.id, activePads.indexOf(tempEl.id), noteCode];
+  };
 
   const getPadPositionFromId = (padId: string): [number, number] => {
     const padNumber = parseInt(padId.slice(padId.indexOf("-") + 1));
@@ -82,14 +98,23 @@ const Launchpad = ({
 
   return (
     <div className="flex flex-justify">
-      <div className="launchpad w-max h-max p-7 mt-3 bg-black">
+      <div className="launchpad">
         {[...Array(height)].map((row, rowIndex) => {
           return (
-            <div key={rowIndex} className="flex">
-              {[...Array(width)].map((col, colIndex) =>
-                Pad(rowIndex * width + colIndex)
-              )}
-            </div>
+            selectedMidiInput && (
+              <div key={rowIndex + selectedMidiInput.id} className="flex">
+                {[...Array(width)].map((col, colIndex) => {
+                  let note = LpMIniMK3.filter((note) => {
+                    if (note.position.x == colIndex && note.position.y == rowIndex) {
+                      return note;
+                    }
+                  });
+                  if (note.length) {
+                    return Pad(note[0].noteCode);
+                  }
+                })}
+              </div>
+            )
           );
         })}
       </div>

@@ -1,9 +1,5 @@
 import { useEffect, useState } from "react";
-import {
-  MidiHandler,
-  MIDIInputInfo,
-  MIDIMessage,
-} from "../modules/MidiHandler";
+import { MidiHandler, MIDIInputInfo, MIDIMessage } from "../modules/MidiHandler";
 import { Card } from "./shared/Card";
 
 const midi = new MidiHandler();
@@ -18,27 +14,35 @@ export const MidiDebugger = ({
   useEffect(() => {
     async function getMidiInput() {
       await midi.init();
-      if (selectedMidiInput)
-        midi.getMIDIMessage(selectedMidiInput.id, onMidiMessage);
+      if (selectedMidiInput) midi.getMIDIMessage(selectedMidiInput.id, onMidiMessage);
     }
 
     getMidiInput().catch((e) => null);
+
+    return () => {
+      if (selectedMidiInput) {
+        midi.destroy(selectedMidiInput.id);
+        setMessages([]);
+      }
+    };
   }, [selectedMidiInput]);
 
   const renderMessages = () =>
     messages.map((msg) => {
       return (
-        <li key={msg.messageCount}>
-          <span className="mr-5">cmd: {msg.command}</span>
-          <span className="mr-5">note: {msg.note}</span>
-          <span className="mr-5">velocity: {msg.velocity}</span>
-        </li>
+        selectedMidiInput && (
+          <li key={msg.messageCount + selectedMidiInput.id}>
+            <span className="mr-5">cmd: {msg.command}</span>
+            <span className="mr-5">note: {msg.note}</span>
+            <span className="mr-5">velocity: {msg.velocity}</span>
+          </li>
+        )
       );
     });
 
   const onMidiMessage = (msg: MIDIMessage) => {
     if (msg.command == 248) return;
-    
+
     setMessages((prevMessages) => {
       const prev = [...prevMessages];
       if (prev.length >= 30) {

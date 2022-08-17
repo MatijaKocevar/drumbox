@@ -21,16 +21,14 @@ const Drumbox = () => {
   }, [sequenceMap]);
 
   useEffect(() => {
-//    sequencer.beatsObservable$.subscribe();
-  }, [])
+    //    sequencer.beatsObservable$.subscribe();
+  }, []);
 
   const handleMouseDown = (e: React.MouseEvent<HTMLButtonElement>) => {
     const [padId, padIndex] = getPadDataFromEvent(e);
 
     setActivePads((activePads) =>
-      padIndex != -1
-        ? [...activePads].filter((id) => id != padId)
-        : [...activePads, padId]
+      padIndex != -1 ? [...activePads].filter((id) => id != padId) : [...activePads, padId]
     );
 
     setSequenceMap((sequenceMap) => {
@@ -66,9 +64,7 @@ const Drumbox = () => {
     }
 
     if (hoverMode === "remove" && padIndex != -1) {
-      setActivePads((activePads) =>
-        [...activePads].filter((id) => id != padId)
-      );
+      setActivePads((activePads) => [...activePads].filter((id) => id != padId));
 
       setSequenceMap((sequenceMap) => {
         const newSequence = sequenceMap.map((row) => [...row]);
@@ -78,15 +74,13 @@ const Drumbox = () => {
     }
   };
 
-  const getPadDataFromEvent = (
-    e: React.MouseEvent<HTMLElement>
-  ): [string, number] => [
+  const getPadDataFromEvent = (e: React.MouseEvent<HTMLElement>): [string, number] => [
     e.currentTarget.id,
     activePads.indexOf(e.currentTarget.id),
   ];
 
   const getPadPositionFromId = (padId: string): [number, number] => {
-    const padNumber = parseInt(padId.slice(padId.indexOf('-') + 1));
+    const padNumber = parseInt(padId.slice(padId.indexOf("-") + 1));
     const row = Math.floor(padNumber / width);
     const col = padNumber % height;
 
@@ -96,8 +90,7 @@ const Drumbox = () => {
   const setPadStyles = (padId: string) => {
     const isPadActive = activePads.indexOf(padId) != -1;
 
-    const mainStyles =
-      "w-14 h-14 m-2 bg-black dark:bg-slate-600 hover:bg-slate-400";
+    const mainStyles = "w-14 h-14 m-2 bg-black dark:bg-slate-600 hover:bg-slate-400";
     const activeStyles = "dark:bg-green-800 hover:bg-green-600";
 
     return isPadActive ? [mainStyles, activeStyles].join(" ") : mainStyles;
@@ -132,17 +125,11 @@ const Drumbox = () => {
       >
         STOP
       </button>
-      <div
-        className="drumbox"
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
-      >
+      <div className="drumbox" onMouseUp={handleMouseUp} onMouseLeave={handleMouseUp}>
         {[...Array(height)].map((row, rowIndex) => {
           return (
             <div key={rowIndex} className="flex">
-              {[...Array(width)].map((col, colIndex) =>
-                Pad(rowIndex * width + colIndex)
-              )}
+              {[...Array(width)].map((col, colIndex) => Pad(rowIndex * width + colIndex))}
             </div>
           );
         })}

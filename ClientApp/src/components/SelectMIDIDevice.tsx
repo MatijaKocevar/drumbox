@@ -9,6 +9,15 @@ const SelectMIDIDevice = ({
   const [inputs, setInputs] = useState<MIDIInputInfo[]>([]);
   const [isWebMidiAvailable, setIsWebMidiAvailable] = useState<boolean>(false);
 
+  function sendMiddleC(midiAccess: WebMidi.MIDIAccess, portID: any) {
+    const noteOnMessage = [0x00, 64, 0x7f]; // note on, middle C, full velocity
+    const output = midiAccess.outputs.get(portID);
+    if (output) {
+      output?.send(noteOnMessage);
+      console.log("sent to output");
+    }
+  }
+
   useEffect(() => {
     async function getMIDIInputs() {
       const midi = new MidiHandler();
@@ -34,17 +43,15 @@ const SelectMIDIDevice = ({
         className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ing-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
         defaultValue={"default"}
         onChange={(e: BaseSyntheticEvent) => {
-          let input = inputs.find(i => i.id == e.currentTarget.value)
-          if (input) onMIDIInputChange(input)
+          let input = inputs.find((i) => i.id == e.currentTarget.value);
+          if (input) onMIDIInputChange(input);
         }}
       >
         <>
           <option disabled hidden value={"default"}>
             Select an input
           </option>
-          {!isWebMidiAvailable && (
-            <option> MIDI API not avaliable on this device</option>
-          )}
+          {!isWebMidiAvailable && <option> MIDI API not avaliable on this device</option>}
           {inputs?.length &&
             inputs.map((input) => {
               return (
